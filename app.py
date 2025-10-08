@@ -31,12 +31,20 @@ except ImportError as e:
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
-# Available options
+# Enhanced country list matching the scraper
 COUNTRIES = [
-    "United States", "United Kingdom", "Canada", "Australia", "Germany", 
-    "France", "Japan", "China", "India", "Brazil", "Mexico", "Spain",
-    "Italy", "Netherlands", "Switzerland", "Sweden", "Norway", "Denmark",
-    "United Arab Emirates", "Singapore", "South Korea", "Ireland"
+    # European Countries
+    "United Kingdom", "Germany", "France", "Italy", "Spain", "Netherlands", 
+    "Switzerland", "Sweden", "Norway", "Denmark", "Ireland", "Belgium", 
+    "Austria", "Portugal", "Finland", "Poland", "Czech Republic", "Hungary", 
+    "Romania", "Greece",
+    
+    # Wealthy Asian Countries
+    "Japan", "South Korea", "Singapore", "Hong Kong", "Taiwan", 
+    "United Arab Emirates", "Qatar", "Saudi Arabia", "Israel", "Malaysia",
+    
+    # Others
+    "United States", "Canada", "Australia", "India", "Brazil", "Mexico"
 ]
 
 JOB_TITLES = [
