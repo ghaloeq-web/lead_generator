@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "AI-powered lead generation tool"
 authors = ["Your Name <your@email.com>"]
 readme = "README.md"
+packages = [{include = "**/*"}]
 
 [tool.poetry.dependencies]
 python = "^3.8"
