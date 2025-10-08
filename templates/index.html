@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Business Lead Generator</h1>
+        <p>Enter your search criteria to generate business leads:</p>
+        
+        <form id="leadForm">
+            <div class="form-group">
+                <label for="title">Job Title (e.g., "Manager", "CEO"):</label>
+                <input type="text" id="title" name="title" placeholder="Enter job title">
+            </div>
+            
+            <div class="form-group">
+                <label for="industry">Industry (e.g., "Technology", "Healthcare"):</label>
+                <input type="text" id="industry" name="industry" placeholder="Enter industry">
+            </div>
+            
+            <div class="form-group">
+                <label for="country">Country:</label>
+                <input type="text" id="country" name="country" placeholder="Enter country">
+            </div>
+            
+            <div class="form-group">
+                <label for="city">City:</label>
+                <input type="text" id="city" name="city" placeholder="Enter city">
+            </div>
+            
+            <div class="form-group">
+                <label for="format">Export Format:</label>
+                <select id="format" name="format">
+                    <option value="xlsx">Excel (.xlsx)</option>
+                    <option value="pdf">PDF (.pdf)</option>
+                    <option value="vcf">vCard (.vcf)</option>
+                </select>
+            </div>
+            
+            <button type="submit" id="generateBtn">Generate Leads</button>
+        </form>
+        
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('leadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('generateBtn');
+            const resultDiv = document.getElementById('result');
+            
+            // Get form data
+            const formData = {
+                title: document.getElementById('title').value,
+                industry: document.getElementById('industry').value,
+                country: document.getElementById('country').value,
+                city: document.getElementById('city').value,
+                format: document.getElementById('format').value
+            };
+            
+            // Validate at least one field is filled
+            if (!formData.title && !formData.industry && !formData.country && !formData.city) {
+                showResult('Please fill in at least one field', 'error');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = 'Generating Leads...';
+            resultDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch('/generate-leads', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult(
+                        `Success! Generated ${data.leads_count} leads. <a href="${data.download_url}" download>Download File</a>`,
+                        'success'
+                    );
+                } else {
+                    showResult(data.error || 'An error occurred', 'error');
+                }
+            } catch (error) {
+                showResult('Network error: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Generate Leads';
+            }
+        });
+        
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = message;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
