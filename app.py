@@ -9,39 +9,56 @@ import pathlib
 sys.path.append(str(pathlib.Path(__file__).parent))
 
 try:
-    from utils.scraper import LeadScraper
+    from utils.scraper import AdvancedLeadScraper
     from utils.exporter import export_data
 except ImportError as e:
     logging.error(f"Import error: {e}")
-    # Fallback - define minimal versions if imports fail
-    class LeadScraper:
-        def scrape_leads(self, search_query, max_results=50):
+    # Fallback
+    class AdvancedLeadScraper:
+        def scrape_leads(self, search_data, max_results=50):
             return [{
                 'name': 'Sample Lead',
-                'title': 'Manager',
+                'title': 'CEO',
                 'company': 'Sample Company',
                 'phone': '+1-555-0123',
                 'email': 'contact@sample.com',
                 'website': 'https://sample.com',
                 'industry': 'Technology',
-                'location': 'New York',
+                'location': 'United States',
                 'source': 'Sample'
             }]
-    
-    def export_data(leads, filename, format_type):
-        # Create a simple text file as fallback
-        with open(filename, 'w') as f:
-            for lead in leads:
-                f.write(f"Name: {lead.get('name', '')}\n")
-                f.write(f"Phone: {lead.get('phone', '')}\n")
-                f.write(f"Email: {lead.get('email', '')}\n\n")
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
+# Available options
+COUNTRIES = [
+    "United States", "United Kingdom", "Canada", "Australia", "Germany", 
+    "France", "Japan", "China", "India", "Brazil", "Mexico", "Spain",
+    "Italy", "Netherlands", "Switzerland", "Sweden", "Norway", "Denmark",
+    "United Arab Emirates", "Singapore", "South Korea", "Ireland"
+]
+
+JOB_TITLES = [
+    "CEO", "CFO", "CTO", "CMO", "COO", "President", "Vice President",
+    "Director", "Manager", "Senior Manager", "Executive Director",
+    "Managing Director", "Partner", "Owner", "Founder", "Board Member",
+    "Head of Department", "Team Lead", "Supervisor"
+]
+
+INDUSTRIES = [
+    "Technology", "Healthcare", "Finance", "Education", "Real Estate",
+    "Manufacturing", "Retail", "Construction", "Transportation",
+    "Hospitality", "Energy", "Telecommunications", "Marketing",
+    "Consulting", "Legal", "Insurance", "Pharmaceuticals"
+]
+
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', 
+                         countries=COUNTRIES, 
+                         job_titles=JOB_TITLES,
+                         industries=INDUSTRIES)
 
 @app.route('/generate-leads', methods=['POST'])
 def generate_leads():
@@ -54,34 +71,29 @@ def generate_leads():
         title = data.get('title', '')
         industry = data.get('industry', '')
         country = data.get('country', '')
-        city = data.get('city', '')
+        website_url = data.get('website_url', '')
         format_type = data.get('format', 'xlsx')
         
         # Validate input
-        if not any([title, industry, country, city]):
+        if not any([title, industry, country, website_url]):
             return jsonify({
                 'error': 'Please provide at least one search criteria'
             }), 400
         
         # Initialize scraper
-        scraper = LeadScraper()
+        scraper = AdvancedLeadScraper()
         
-        # Generate search query
-        search_query_parts = []
-        if title:
-            search_query_parts.append(title)
-        if industry:
-            search_query_parts.append(industry)
-        if city:
-            search_query_parts.append(city)
-        if country:
-            search_query_parts.append(country)
-        
-        search_query = " ".join(search_query_parts)
+        # Prepare search data
+        search_data = {
+            'title': title,
+            'industry': industry,
+            'country': country,
+            'website_url': website_url
+        }
         
         # Scrape leads
-        app.logger.info(f"Searching for leads: {search_query}")
-        leads = scraper.scrape_leads(search_query, max_results=20)
+        app.logger.info(f"Searching for leads: {search_data}")
+        leads = scraper.scrape_leads(search_data, max_results=50)
         
         if not leads:
             return jsonify({
@@ -100,7 +112,8 @@ def generate_leads():
         return jsonify({
             'message': f'Successfully generated {len(leads)} leads',
             'download_url': f'/download/{filename}',
-            'leads_count': len(leads)
+            'leads_count': len(leads),
+            'leads_preview': leads[:5]  # Preview first 5 leads
         })
         
     except Exception as e:
