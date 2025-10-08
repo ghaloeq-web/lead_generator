@@ -19,7 +19,6 @@ vobject = "^0.9.6.1"
 python-dotenv = "^1.0.0"
 gunicorn = "^21.2.0"
 pdfplumber = "^0.11.0"
-pypdf2 = "^3.0.1"
 urllib3 = "^2.0.0"
 
 [tool.poetry.group.dev.dependencies]
